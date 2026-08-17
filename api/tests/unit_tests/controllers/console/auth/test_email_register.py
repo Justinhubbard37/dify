@@ -67,13 +67,13 @@ class TestEmailRegisterSendEmailApi:
         )
         with (
             patch("controllers.console.wraps.FeatureService.get_system_features", return_value=feature_flags),
-        ):
-            with app.test_request_context(
+            app.test_request_context(
                 "/email-register/send-email",
                 method="POST",
                 json={"email": "Invitee@Example.com", "language": "en-US"},
-            ):
-                response = EmailRegisterSendEmailApi().post()
+            ),
+        ):
+            response = EmailRegisterSendEmailApi().post()
 
         assert response == {"result": "success", "data": "token-123"}
         mock_is_freeze.assert_called_once_with("invitee@example.com")
@@ -111,14 +111,14 @@ class TestEmailRegisterSendEmailApi:
             patch("controllers.console.auth.email_register.dify_config.DEPLOYMENT_EDITION", DeploymentEdition.CLOUD),
             patch("controllers.console.wraps.dify_config.DEPLOYMENT_EDITION", DeploymentEdition.CLOUD),
             patch("controllers.console.wraps.FeatureService.get_system_features", return_value=feature_flags),
-        ):
-            with app.test_request_context(
+            app.test_request_context(
                 "/email-register/send-email",
                 method="POST",
                 json={"email": "Invitee@Example.com"},
-            ):
-                with pytest.raises(expected_error):
-                    EmailRegisterSendEmailApi().post()
+            ),
+            pytest.raises(expected_error),
+        ):
+            EmailRegisterSendEmailApi().post()
 
         mock_get_freeze_type.assert_called_once_with("invitee@example.com")
         mock_is_email_send_ip_limit.assert_called_once_with("127.0.0.1")
@@ -153,13 +153,13 @@ class TestEmailRegisterCheckApi:
         )
         with (
             patch("controllers.console.wraps.FeatureService.get_system_features", return_value=feature_flags),
-        ):
-            with app.test_request_context(
+            app.test_request_context(
                 "/email-register/validity",
                 method="POST",
                 json={"email": "User@Example.com", "code": "4321", "token": "token-123"},
-            ):
-                response = EmailRegisterCheckApi().post()
+            ),
+        ):
+            response = EmailRegisterCheckApi().post()
 
         assert response == {"is_valid": True, "email": "user@example.com", "token": "new-token"}
         mock_rate_limit_check.assert_called_once_with("user@example.com")
@@ -227,13 +227,13 @@ class TestEmailRegisterResetApi:
         )
         with (
             patch("controllers.console.wraps.FeatureService.get_system_features", return_value=feature_flags),
-        ):
-            with app.test_request_context(
+            app.test_request_context(
                 "/email-register",
                 method="POST",
                 json={"token": "token-123", "new_password": "ValidPass123!", "password_confirm": "ValidPass123!"},
-            ):
-                response = EmailRegisterResetApi().post()
+            ),
+        ):
+            response = EmailRegisterResetApi().post()
 
         assert response == {"result": "success", "data": {"access_token": "a", "refresh_token": "r"}}
         mock_create_account.assert_called_once_with(
@@ -279,8 +279,7 @@ class TestEmailRegisterResetApi:
         )
         with (
             patch("controllers.console.wraps.FeatureService.get_system_features", return_value=feature_flags),
-        ):
-            with app.test_request_context(
+            app.test_request_context(
                 "/email-register",
                 method="POST",
                 json={
@@ -289,8 +288,9 @@ class TestEmailRegisterResetApi:
                     "password_confirm": "ValidPass123!",
                     "timezone": "Asia/Shanghai",
                 },
-            ):
-                response = EmailRegisterResetApi().post()
+            ),
+        ):
+            response = EmailRegisterResetApi().post()
 
         assert response == {"result": "success", "data": {"access_token": "a", "refresh_token": "r"}}
         mock_create_account.assert_called_once_with(
@@ -336,8 +336,7 @@ class TestEmailRegisterResetApi:
         )
         with (
             patch("controllers.console.wraps.FeatureService.get_system_features", return_value=feature_flags),
-        ):
-            with app.test_request_context(
+            app.test_request_context(
                 "/email-register",
                 method="POST",
                 json={
@@ -346,8 +345,9 @@ class TestEmailRegisterResetApi:
                     "password_confirm": "ValidPass123!",
                     "language": "zh-Hans",
                 },
-            ):
-                response = EmailRegisterResetApi().post()
+            ),
+        ):
+            response = EmailRegisterResetApi().post()
 
         assert response == {"result": "success", "data": {"access_token": "a", "refresh_token": "r"}}
         mock_create_account.assert_called_once_with(

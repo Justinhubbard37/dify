@@ -537,9 +537,8 @@ class TestConversationApiController:
         app_model = SimpleNamespace(mode=AppMode.COMPLETION)
         end_user = SimpleNamespace()
 
-        with app.test_request_context("/conversations", method="GET"):
-            with pytest.raises(NotChatAppError):
-                handler(api, app_model=app_model, end_user=end_user)
+        with app.test_request_context("/conversations", method="GET"), pytest.raises(NotChatAppError):
+            handler(api, app_model=app_model, end_user=end_user)
 
     def test_list_last_not_found(
         self,
@@ -561,12 +560,14 @@ class TestConversationApiController:
         app_model = SimpleNamespace(id="app-1", mode=AppMode.CHAT)
         end_user = _end_user()
 
-        with app.test_request_context(
-            f"/conversations?last_id={last_id}&limit=20",
-            method="GET",
+        with (
+            app.test_request_context(
+                f"/conversations?last_id={last_id}&limit=20",
+                method="GET",
+            ),
+            pytest.raises(NotFound),
         ):
-            with pytest.raises(NotFound):
-                handler(api, app_model=app_model, end_user=end_user)
+            handler(api, app_model=app_model, end_user=end_user)
 
 
 class TestConversationDetailApiController:
@@ -576,14 +577,13 @@ class TestConversationDetailApiController:
         app_model = SimpleNamespace(mode=AppMode.COMPLETION)
         end_user = SimpleNamespace()
 
-        with app.test_request_context("/conversations/1", method="DELETE"):
-            with pytest.raises(NotChatAppError):
-                handler(
-                    api,
-                    app_model=app_model,
-                    end_user=end_user,
-                    conversation_id="00000000-0000-0000-0000-000000000001",
-                )
+        with app.test_request_context("/conversations/1", method="DELETE"), pytest.raises(NotChatAppError):
+            handler(
+                api,
+                app_model=app_model,
+                end_user=end_user,
+                conversation_id="00000000-0000-0000-0000-000000000001",
+            )
 
     def test_delete_not_found(self, app: Flask, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.setattr(
@@ -597,14 +597,13 @@ class TestConversationDetailApiController:
         app_model = SimpleNamespace(mode=AppMode.CHAT)
         end_user = SimpleNamespace()
 
-        with app.test_request_context("/conversations/1", method="DELETE"):
-            with pytest.raises(NotFound):
-                handler(
-                    api,
-                    app_model=app_model,
-                    end_user=end_user,
-                    conversation_id="00000000-0000-0000-0000-000000000001",
-                )
+        with app.test_request_context("/conversations/1", method="DELETE"), pytest.raises(NotFound):
+            handler(
+                api,
+                app_model=app_model,
+                end_user=end_user,
+                conversation_id="00000000-0000-0000-0000-000000000001",
+            )
 
 
 class TestConversationRenameApiController:
@@ -620,18 +619,20 @@ class TestConversationRenameApiController:
         app_model = SimpleNamespace(mode=AppMode.CHAT)
         end_user = SimpleNamespace()
 
-        with app.test_request_context(
-            "/conversations/1/name",
-            method="POST",
-            json={"auto_generate": True},
+        with (
+            app.test_request_context(
+                "/conversations/1/name",
+                method="POST",
+                json={"auto_generate": True},
+            ),
+            pytest.raises(NotFound),
         ):
-            with pytest.raises(NotFound):
-                handler(
-                    api,
-                    app_model=app_model,
-                    end_user=end_user,
-                    conversation_id="00000000-0000-0000-0000-000000000001",
-                )
+            handler(
+                api,
+                app_model=app_model,
+                end_user=end_user,
+                conversation_id="00000000-0000-0000-0000-000000000001",
+            )
 
 
 class TestConversationVariablesApiController:
@@ -641,14 +642,13 @@ class TestConversationVariablesApiController:
         app_model = SimpleNamespace(mode=AppMode.COMPLETION)
         end_user = SimpleNamespace()
 
-        with app.test_request_context("/conversations/1/variables", method="GET"):
-            with pytest.raises(NotChatAppError):
-                handler(
-                    api,
-                    app_model=app_model,
-                    end_user=end_user,
-                    conversation_id="00000000-0000-0000-0000-000000000001",
-                )
+        with app.test_request_context("/conversations/1/variables", method="GET"), pytest.raises(NotChatAppError):
+            handler(
+                api,
+                app_model=app_model,
+                end_user=end_user,
+                conversation_id="00000000-0000-0000-0000-000000000001",
+            )
 
     def test_not_found(self, app: Flask, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.setattr(
@@ -662,17 +662,19 @@ class TestConversationVariablesApiController:
         app_model = SimpleNamespace(mode=AppMode.CHAT)
         end_user = SimpleNamespace()
 
-        with app.test_request_context(
-            "/conversations/1/variables?limit=20",
-            method="GET",
+        with (
+            app.test_request_context(
+                "/conversations/1/variables?limit=20",
+                method="GET",
+            ),
+            pytest.raises(NotFound),
         ):
-            with pytest.raises(NotFound):
-                handler(
-                    api,
-                    app_model=app_model,
-                    end_user=end_user,
-                    conversation_id="00000000-0000-0000-0000-000000000001",
-                )
+            handler(
+                api,
+                app_model=app_model,
+                end_user=end_user,
+                conversation_id="00000000-0000-0000-0000-000000000001",
+            )
 
     def test_success_serializes_response(self, app: Flask, monkeypatch: pytest.MonkeyPatch) -> None:
         created_at = datetime(2026, 1, 2, 3, 4, 5, tzinfo=UTC)
@@ -731,19 +733,21 @@ class TestConversationVariableDetailApiController:
         app_model = SimpleNamespace(mode=AppMode.CHAT)
         end_user = SimpleNamespace()
 
-        with app.test_request_context(
-            "/conversations/1/variables/2",
-            method="PUT",
-            json={"value": "x"},
+        with (
+            app.test_request_context(
+                "/conversations/1/variables/2",
+                method="PUT",
+                json={"value": "x"},
+            ),
+            pytest.raises(BadRequest),
         ):
-            with pytest.raises(BadRequest):
-                handler(
-                    api,
-                    app_model=app_model,
-                    end_user=end_user,
-                    conversation_id="00000000-0000-0000-0000-000000000001",
-                    variable_id="00000000-0000-0000-0000-000000000002",
-                )
+            handler(
+                api,
+                app_model=app_model,
+                end_user=end_user,
+                conversation_id="00000000-0000-0000-0000-000000000001",
+                variable_id="00000000-0000-0000-0000-000000000002",
+            )
 
     def test_update_not_found(self, app: Flask, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.setattr(
@@ -757,19 +761,21 @@ class TestConversationVariableDetailApiController:
         app_model = SimpleNamespace(mode=AppMode.CHAT)
         end_user = SimpleNamespace()
 
-        with app.test_request_context(
-            "/conversations/1/variables/2",
-            method="PUT",
-            json={"value": "x"},
+        with (
+            app.test_request_context(
+                "/conversations/1/variables/2",
+                method="PUT",
+                json={"value": "x"},
+            ),
+            pytest.raises(NotFound),
         ):
-            with pytest.raises(NotFound):
-                handler(
-                    api,
-                    app_model=app_model,
-                    end_user=end_user,
-                    conversation_id="00000000-0000-0000-0000-000000000001",
-                    variable_id="00000000-0000-0000-0000-000000000002",
-                )
+            handler(
+                api,
+                app_model=app_model,
+                end_user=end_user,
+                conversation_id="00000000-0000-0000-0000-000000000001",
+                variable_id="00000000-0000-0000-0000-000000000002",
+            )
 
     def test_update_success_serializes_response(self, app: Flask, monkeypatch: pytest.MonkeyPatch) -> None:
         created_at = datetime(2026, 1, 2, 3, 4, 5, tzinfo=UTC)

@@ -176,11 +176,13 @@ class TestFileService:
             assert db_session.get(UploadFile, result.id) is not None
 
     def test_upload_file_blocked_extension(self, file_service):
-        with patch.object(dify_config, "inner_UPLOAD_FILE_EXTENSION_BLACKLIST", "exe"):
-            with pytest.raises(BlockedFileExtensionError):
-                file_service.upload_file(
-                    filename="test.exe", content=b"", mimetype="application/octet-stream", user=_account()
-                )
+        with (
+            patch.object(dify_config, "inner_UPLOAD_FILE_EXTENSION_BLACKLIST", "exe"),
+            pytest.raises(BlockedFileExtensionError),
+        ):
+            file_service.upload_file(
+                filename="test.exe", content=b"", mimetype="application/octet-stream", user=_account()
+            )
 
     def test_upload_file_unsupported_type_for_datasets(self, file_service):
         with pytest.raises(UnsupportedFileTypeError):
@@ -191,9 +193,8 @@ class TestFileService:
     def test_upload_file_too_large(self, file_service):
         # 16MB file for an image with 15MB limit
         content = b"a" * (16 * 1024 * 1024)
-        with patch.object(dify_config, "UPLOAD_IMAGE_FILE_SIZE_LIMIT", 15):
-            with pytest.raises(FileTooLargeError):
-                file_service.upload_file(filename="test.jpg", content=content, mimetype="image/jpeg", user=_account())
+        with patch.object(dify_config, "UPLOAD_IMAGE_FILE_SIZE_LIMIT", 15), pytest.raises(FileTooLargeError):
+            file_service.upload_file(filename="test.jpg", content=content, mimetype="image/jpeg", user=_account())
 
     def test_upload_file_end_user(self, file_service: FileService, db_session: Session):
         user = EndUser(
