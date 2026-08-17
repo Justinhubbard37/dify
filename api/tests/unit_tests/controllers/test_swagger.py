@@ -618,11 +618,8 @@ def test_console_member_invite_documents_bad_request_response():
     }
 
 
-def test_console_billing_routes_document_error_responses(monkeypatch: pytest.MonkeyPatch):
-    from configs import dify_config
+def test_console_billing_routes_document_error_responses():
     from controllers.console import bp as console_bp
-
-    monkeypatch.setattr(dify_config, "SWAGGER_UI_ENABLED", True)
 
     app = Flask(__name__)
     app.config["TESTING"] = True
@@ -664,11 +661,8 @@ def test_console_billing_routes_document_error_responses(monkeypatch: pytest.Mon
         assert properties["status"]["const"] == status
 
 
-def test_console_model_provider_checkout_route_is_deprecated(monkeypatch: pytest.MonkeyPatch):
-    from configs import dify_config
+def test_console_model_provider_checkout_route_is_deprecated():
     from controllers.console import bp as console_bp
-
-    monkeypatch.setattr(dify_config, "SWAGGER_UI_ENABLED", True)
 
     app = Flask(__name__)
     app.config["TESTING"] = True

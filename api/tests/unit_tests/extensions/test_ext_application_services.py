@@ -38,6 +38,7 @@ from services.init_validation_service import InvalidInitializationPasswordError
 from services.partner_tenant_binding_service import PartnerTenantBindingService
 from services.tag_application_service import TagApplicationService
 from services.webapp_access_query_service import WebAppAccessUnavailableError
+from tests.unit_tests.config_override import apply_config_overrides
 
 
 @pytest.mark.parametrize(
@@ -95,12 +96,11 @@ def test_init_app_registers_services_for_the_current_app(
 ) -> None:
     app = Flask(__name__)
     monkeypatch.setattr(ext_application_services, "get_session_maker", lambda: sqlite_session_factory)
-    monkeypatch.setattr(
-        ext_application_services.dify_config,
-        "DEPLOYMENT_EDITION",
-        DeploymentEdition.COMMUNITY,
+    apply_config_overrides(
+        monkeypatch,
+        DEPLOYMENT_EDITION=DeploymentEdition.COMMUNITY,
+        INIT_PASSWORD="expected",
     )
-    monkeypatch.setattr(ext_application_services.dify_config, "INIT_PASSWORD", "expected")
 
     ext_application_services.init_app(app)
 
@@ -526,7 +526,7 @@ def test_build_application_services_wires_dynamic_recommended_catalog(
     sqlite_session_factory: sessionmaker[Session],
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    monkeypatch.setattr(ext_application_services.dify_config, "HOSTED_FETCH_APP_TEMPLATES_MODE", "builtin")
+    apply_config_overrides(monkeypatch, HOSTED_FETCH_APP_TEMPLATES_MODE="builtin")
     services = ext_application_services.build_application_services(
         database_client=sqlite_session_factory,
         deployment_edition=DeploymentEdition.COMMUNITY,
@@ -551,7 +551,7 @@ def test_build_application_services_wires_dynamic_recommended_catalog(
         )
     assert result.recommended_apps
 
-    monkeypatch.setattr(ext_application_services.dify_config, "HOSTED_FETCH_APP_TEMPLATES_MODE", "invalid")
+    apply_config_overrides(monkeypatch, HOSTED_FETCH_APP_TEMPLATES_MODE="invalid")
     with pytest.raises(ValueError, match="invalid fetch recommended apps mode: invalid"):
         services.recommended_app_queries.list_recommended(
             requested_language="en-US",
